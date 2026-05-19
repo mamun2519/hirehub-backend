@@ -57,6 +57,7 @@ hirehub-server/
 Follow these simple steps when you want to add a new entity/feature to HireHub.
 
 ### 📝 Step 1: Define the Database Model
+
 Open `prisma/schema.prisma` and add your new model at the bottom.
 
 ```prisma
@@ -77,6 +78,7 @@ model Job {
 ```
 
 ### 🗄️ Step 2: Run the Migration
+
 Prisma 7 uses the `prisma.config.ts` file to retrieve your database connection URL. Run the command to create the table in PostgreSQL and automatically generate your updated TypeScript client:
 
 ```bash
@@ -86,6 +88,7 @@ npx prisma migrate dev --name create_jobs_table
 ---
 
 ### 📂 Step 3: Create the Module Folder Structure
+
 Create a new directory named `job` under `src/app/modules/`:
 
 ```text
@@ -99,118 +102,122 @@ src/app/modules/job/
 ---
 
 ### 🛡️ Step 4: Define Request Validation Schema (`job.validation.ts`)
-We use **Zod** to validate incoming requests *before* reaching the controller to ensure bad data never hits our database.
+
+We use **Zod** to validate incoming requests _before_ reaching the controller to ensure bad data never hits our database.
 
 ```typescript
 // src/app/modules/job/job.validation.ts
-import { z } from 'zod';
+import { z } from "zod";
 
 const createJobValidationSchema = z.object({
-  body: z.object({
-    title: z.string({ message: 'Job title is required' }),
-    description: z.string({ message: 'Job description is required' }),
-    companyName: z.string({ message: 'Company name is required' }),
-    location: z.string({ message: 'Location is required' }),
-    salary: z.string().optional(),
-  }),
+    body: z.object({
+        title: z.string({ message: "Job title is required" }),
+        description: z.string({ message: "Job description is required" }),
+        companyName: z.string({ message: "Company name is required" }),
+        location: z.string({ message: "Location is required" }),
+        salary: z.string().optional(),
+    }),
 });
 
 export const JobValidation = {
-  createJobValidationSchema,
+    createJobValidationSchema,
 };
 ```
 
 ---
 
 ### ⚙️ Step 5: Create the Business Logic layer (`job.service.ts`)
+
 The Service layer communicates with Prisma to perform operations inside PostgreSQL.
 
 ```typescript
 // src/app/modules/job/job.service.ts
-import prisma from '../../shared/prisma';
+import prisma from "../../shared/prisma";
 
 const createJobIntoDB = async (payload: any) => {
-  const result = await prisma.job.create({
-    data: payload,
-  });
-  return result;
+    const result = await prisma.job.create({
+        data: payload,
+    });
+    return result;
 };
 
 const getAllJobsFromDB = async () => {
-  const result = await prisma.job.findMany();
-  return result;
+    const result = await prisma.job.findMany();
+    return result;
 };
 
 export const JobService = {
-  createJobIntoDB,
-  getAllJobsFromDB,
+    createJobIntoDB,
+    getAllJobsFromDB,
 };
 ```
 
 ---
 
 ### 🎮 Step 6: Create the Controller layer (`job.controller.ts`)
+
 The Controller handles the Express Request and Response, calls the Service, and formats the return message.
 
 ```typescript
 // src/app/modules/job/job.controller.ts
-import { Request, Response } from 'express';
-import httpStatus from 'http-status';
-import catchAsync from '../../utils/catchAsync';
-import sendResponse from '../../utils/sendResponse';
-import { JobService } from './job.service';
+import { Request, Response } from "express";
+import httpStatus from "http-status";
+import catchAsync from "../../utils/catchAsync";
+import sendResponse from "../../utils/sendResponse";
+import { JobService } from "./job.service";
 
 const createJob = catchAsync(async (req: Request, res: Response) => {
-  const result = await JobService.createJobIntoDB(req.body);
+    const result = await JobService.createJobIntoDB(req.body);
 
-  sendResponse(res, {
-    statusCode: httpStatus.CREATED,
-    success: true,
-    message: 'Job post created successfully!',
-    data: result,
-  });
+    sendResponse(res, {
+        statusCode: httpStatus.CREATED,
+        success: true,
+        message: "Job post created successfully!",
+        data: result,
+    });
 });
 
 const getAllJobs = catchAsync(async (req: Request, res: Response) => {
-  const result = await JobService.getAllJobsFromDB();
+    const result = await JobService.getAllJobsFromDB();
 
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Jobs fetched successfully!',
-    data: result,
-  });
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Jobs fetched successfully!",
+        data: result,
+    });
 });
 
 export const JobController = {
-  createJob,
-  getAllJobs,
+    createJob,
+    getAllJobs,
 };
 ```
 
 ---
 
 ### 🛣️ Step 7: Create the Module Router (`job.route.ts`)
+
 Binds your endpoints to controllers and applies validations or auth middlewares.
 
 ```typescript
 // src/app/modules/job/job.route.ts
-import express from 'express';
-import validateRequest from '../../middlewares/validateRequest';
-import { JobValidation } from './job.validation';
-import { JobController } from './job.controller';
-import auth from '../../middlewares/auth';
+import express from "express";
+import validateRequest from "../../middlewares/validateRequest";
+import { JobValidation } from "./job.validation";
+import { JobController } from "./job.controller";
+import auth from "../../middlewares/auth";
 
 const router = express.Router();
 
 // Allow public to fetch all jobs, but restrict job posting to authenticated users
-router.get('/', JobController.getAllJobs);
+router.get("/", JobController.getAllJobs);
 
 router.post(
-  '/create-job',
-  auth(), // Secure with JWT authentication
-  validateRequest(JobValidation.createJobValidationSchema), // Validate format
-  JobController.createJob
+    "/create-job",
+    auth(), // Secure with JWT authentication
+    validateRequest(JobValidation.createJobValidationSchema), // Validate format
+    JobController.createJob,
 );
 
 export const JobRoutes = router;
@@ -219,30 +226,31 @@ export const JobRoutes = router;
 ---
 
 ### 🔗 Step 8: Register the new routes globally (`src/app/routes/index.ts`)
+
 To make these endpoints active, simply add them to the `moduleRoutes` array inside your centralized router:
 
 ```typescript
 // src/app/routes/index.ts
-import express from 'express';
-import { UserRoutes } from '../modules/user/user.route';
-import { AuthRoutes } from '../modules/auth/auth.route';
-import { JobRoutes } from '../modules/job/job.route'; // 👈 1. Import new routes
+import express from "express";
+import { UserRoutes } from "../modules/user/user.route";
+import { AuthRoutes } from "../modules/auth/auth.route";
+import { JobRoutes } from "../modules/job/job.route"; // 👈 1. Import new routes
 
 const router = express.Router();
 
 const moduleRoutes = [
-  {
-    path: '/users',
-    route: UserRoutes,
-  },
-  {
-    path: '/auth',
-    route: AuthRoutes,
-  },
-  {
-    path: '/jobs',
-    route: JobRoutes, // 👈 2. Add path and router here
-  },
+    {
+        path: "/users",
+        route: UserRoutes,
+    },
+    {
+        path: "/auth",
+        route: AuthRoutes,
+    },
+    {
+        path: "/jobs",
+        route: JobRoutes, // 👈 2. Add path and router here
+    },
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));
@@ -251,23 +259,28 @@ export default router;
 ```
 
 You are done! Your new endpoints are now active:
-*   `GET http://localhost:5000/api/v1/jobs` (Public)
-*   `POST http://localhost:5000/api/v1/jobs/create-job` (Requires Authorization Bearer Token)
+
+- `GET http://localhost:5000/api/v1/jobs` (Public)
+- `POST http://localhost:5000/api/v1/jobs/create-job` (Requires Authorization Bearer Token)
 
 ---
 
 ## 💎 Core Built-in Helpers Explained
 
 ### 1. `catchAsync` Utility
+
 Instead of repeating `try {} catch (error) { next(error) }` in every single controller, wrap the controller with `catchAsync`. It automatically forwards any error to the `globalErrorHandler`.
+
 ```typescript
 const myController = catchAsync(async (req, res) => {
-  // Directly write async logic without try-catch blocks!
+    // Directly write async logic without try-catch blocks!
 });
 ```
 
 ### 2. `sendResponse` Utility
+
 Ensures every success response from the server uses the exact same format:
+
 ```json
 {
   "success": true,
@@ -278,25 +291,31 @@ Ensures every success response from the server uses the exact same format:
 ```
 
 ### 3. `AppError` Custom Error Class
+
 Used to throw expected (operational) HTTP errors with custom status codes:
+
 ```typescript
 throw new AppError(httpStatus.NOT_FOUND, "This user profile does not exist!");
 ```
 
 ### 4. `auth` Middleware Guard
+
 Secures any route by checking for a Bearer token in the `Authorization` header.
-*   Use `auth()` to secure a route.
-*   In the future, you can pass roles `auth('ADMIN', 'RECRUITER')` to limit access further.
-*   Once authorized, you can access current user info via `req.user` (e.g., `req.user.email`).
+
+- Use `auth()` to secure a route.
+- In the future, you can pass roles `auth('ADMIN', 'RECRUITER')` to limit access further.
+- Once authorized, you can access current user info via `req.user` (e.g., `req.user.email`).
 
 ---
 
 ## ⚡ Essential Commands Cheat Sheet
 
-| Command | Purpose |
-| :--- | :--- |
-| `npm run dev` | Runs the server locally with auto-reload. |
-| `npx prisma generate` | Regenerates the Prisma Client types. |
-| `npx prisma migrate dev --name <migration_name>` | Generates and applies a database migration. |
-| `npx prisma studio` | Starts a browser GUI to view and edit your database tables. |
-| `npx tsc --noEmit` | Checks the entire codebase for TypeScript compiler errors. |
+| Command                                          | Purpose                                                     |
+| :----------------------------------------------- | :---------------------------------------------------------- |
+| `npm run dev`                                    | Runs the server locally with auto-reload.                   |
+| `npx prisma generate`                            | Regenerates the Prisma Client types.                        |
+| `npx prisma migrate dev --name <migration_name>` | Generates and applies a database migration.                 |
+| `npx prisma studio`                              | Starts a browser GUI to view and edit your database tables. |
+| `npx tsc --noEmit`                               | Checks the entire codebase for TypeScript compiler errors.  |
+| `npx prisma db seed`                             | Seeds all default user accounts and profiles.               |
+| `npx prisma db seed -- --name=<seeder_name>`     | Seeds only one specific role data set.                      |
