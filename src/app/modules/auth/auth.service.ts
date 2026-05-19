@@ -3,6 +3,7 @@ import jwt, { Secret } from "jsonwebtoken";
 import prisma from "../../shared/prisma";
 import config from "../../config";
 import AppError from "../../errors/AppError";
+import ROLES from "../../constants/roles";
 
 const loginUser = async (payload: any) => {
     const { email, password } = payload;
@@ -30,7 +31,7 @@ const loginUser = async (payload: any) => {
     const jwtPayload = {
         id: user.id,
         email: user.email,
-        role: "USER", // default role
+        role: ROLES.ADMIN,
     };
 
     const accessToken = jwt.sign(
