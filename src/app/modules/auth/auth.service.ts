@@ -1,9 +1,13 @@
 import bcrypt from "bcryptjs";
 import jwt, { Secret } from "jsonwebtoken";
+import httpStatus from "http-status";
 import prisma from "../../shared/prisma";
 import config from "../../config";
 import AppError from "../../errors/AppError";
-import ROLES from "../../constants/roles";
+
+// Pre-calculated dummy bcrypt hash to defend against timing attacks
+const DUMMY_HASH =
+    "$2b$12$L7R2Q6sP.4gH9cW.l5t8oOwP2xU4D6mGqH2nK9wZ4eQ7yR9sT2uI1";
 
 const loginUser = async (payload: any) => {
     const { email, password } = payload;
@@ -13,17 +17,15 @@ const loginUser = async (payload: any) => {
         where: { email },
     });
 
-    if (!user) {
-        throw new AppError(404, "User does not exist with this email!");
-    }
+    // 2. Check password (always compare to prevent timing attacks)
+    const isPasswordMatched = user
+        ? await bcrypt.compare(password, user.password)
+        : await bcrypt.compare(password, DUMMY_HASH);
 
-    // 2. Check if password matches
-    const isPasswordMatched = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordMatched) {
+    if (!user || !isPasswordMatched) {
         throw new AppError(
-            400,
-            "Invalid credentials! Password does not match.",
+            httpStatus.UNAUTHORIZED,
+            "Invalid credentials! Please check your email and password.",
         );
     }
 
@@ -52,6 +54,7 @@ const loginUser = async (payload: any) => {
         user: {
             id: user.id,
             email: user.email,
+            role: user.role,
             createdAt: user.createdAt,
         },
     };
