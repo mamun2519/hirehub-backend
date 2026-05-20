@@ -31,7 +31,7 @@ const getAllUsersFromDB = async (query: any) => {
             },
             {
                 recruiterProfile: {
-                    name: {
+                    companyName: {
                         contains: search,
                         mode: "insensitive",
                     },
@@ -46,11 +46,9 @@ const getAllUsersFromDB = async (query: any) => {
                 },
             },
             {
-                candidateProfile: {
-                    fullName: {
-                        contains: search,
-                        mode: "insensitive",
-                    },
+                name: {
+                    contains: search,
+                    mode: "insensitive",
                 },
             },
             {
@@ -76,6 +74,7 @@ const getAllUsersFromDB = async (query: any) => {
                 id: true,
                 email: true,
                 role: true,
+                name: true,
                 createdAt: true,
                 updatedAt: true,
                 candidateProfile: true,
@@ -101,6 +100,7 @@ const getSingleUserFromDB = async (id: string) => {
             id: true,
             email: true,
             role: true,
+            name: true,
             createdAt: true,
             updatedAt: true,
             candidateProfile: true,
@@ -116,12 +116,15 @@ const updateUserInDB = async (id: string, payload: any) => {
     });
 
     const result = await prisma.$transaction(async (tx) => {
-        // Update user email if provided
+        // Update user email and name if provided
+        const userUpdateData: any = {};
+        if (payload.email !== undefined) userUpdateData.email = payload.email;
+        if (payload.name !== undefined) userUpdateData.name = payload.name;
+        if (payload.fullName !== undefined) userUpdateData.name = payload.fullName;
+
         await tx.user.update({
             where: { id },
-            data: {
-                email: payload.email,
-            },
+            data: userUpdateData,
         });
 
         // Update profile based on role
@@ -129,7 +132,7 @@ const updateUserInDB = async (id: string, payload: any) => {
             await tx.recruiterProfile.update({
                 where: { userId: id },
                 data: {
-                    name: payload.name,
+                    companyName: payload.companyName || payload.company_name || payload.name || "",
                     website: payload.website,
                     location: payload.location,
                     description: payload.description,
@@ -140,7 +143,6 @@ const updateUserInDB = async (id: string, payload: any) => {
             await tx.candidateProfile.update({
                 where: { userId: id },
                 data: {
-                    fullName: payload.name || payload.fullName,
                     phoneNumber: payload.phoneNumber,
                     skills: payload.skills,
                     experience: payload.experience,
@@ -158,6 +160,7 @@ const updateUserInDB = async (id: string, payload: any) => {
                 id: true,
                 email: true,
                 role: true,
+                name: true,
                 createdAt: true,
                 updatedAt: true,
                 candidateProfile: true,
@@ -186,6 +189,7 @@ const createAnUserToDB = async (data: any) => {
                 email: data.email,
                 password: hashedPassword,
                 role: data.role || "candidate",
+                name: data.name || data.fullName || "",
             },
         });
 
@@ -194,7 +198,7 @@ const createAnUserToDB = async (data: any) => {
             await tx.recruiterProfile.create({
                 data: {
                     userId: user.id,
-                    name: data.name || "",
+                    companyName: data.companyName || data.company_name || data.name || "",
                     website: data.website || "",
                     location: data.location || "",
                     description: data.description || "",
@@ -205,7 +209,6 @@ const createAnUserToDB = async (data: any) => {
             await tx.candidateProfile.create({
                 data: {
                     userId: user.id,
-                    fullName: data.name || data.fullName || "",
                     email: data.email,
                     phoneNumber: data.phoneNumber || "",
                     skills: data.skills || [],

@@ -2,14 +2,10 @@ import { z } from "zod";
 
 const createOrUpdateCandidateProfileSchema = z.object({
     body: z.object({
-        fullName: z.string({
-            message: "Full name is required",
-        }),
         email: z
-            .string({
-                message: "Email is required",
-            })
-            .email("Invalid email address"),
+            .string()
+            .email("Invalid email address")
+            .optional(),
         phoneNumber: z.string({
             message: "Phone number is required",
         }),
@@ -36,7 +32,7 @@ const createOrUpdateCandidateProfileSchema = z.object({
 
 const createOrUpdateRecruiterProfileSchema = z.object({
     body: z.object({
-        name: z.string({
+        companyName: z.string({
             message: "Company name is required",
         }),
         website: z
@@ -56,7 +52,29 @@ const createOrUpdateRecruiterProfileSchema = z.object({
     }),
 });
 
+const updateSecuritySchema = z.object({
+    body: z
+        .object({
+            oldPassword: z
+                .string()
+                .min(1, { message: "Current password is required" }),
+            newPassword: z
+                .string()
+                .min(8, {
+                    message: "New password must be at least 8 characters long",
+                }),
+            confirmPassword: z
+                .string()
+                .min(1, { message: "Confirm password is required" }),
+        })
+        .refine((data) => data.newPassword === data.confirmPassword, {
+            message: "New password and confirmation password do not match",
+            path: ["confirmPassword"],
+        }),
+});
+
 export const ProfileValidation = {
     createOrUpdateCandidateProfileSchema,
     createOrUpdateRecruiterProfileSchema,
+    updateSecuritySchema,
 };

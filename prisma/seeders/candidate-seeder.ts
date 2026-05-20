@@ -11,12 +11,12 @@ export const candidateSeeder = async () => {
         where: { email: candidateEmail },
         update: {},
         create: {
+            name: "John Doe",
             email: candidateEmail,
             password: hashedPassword,
             role: "candidate",
             candidateProfile: {
                 create: {
-                    fullName: "John Doe",
                     email: candidateEmail,
                     phoneNumber: "+1-555-0199",
                     skills: [
@@ -42,7 +42,7 @@ export const candidateSeeder = async () => {
     );
 
     // 2. Seed Fake Candidate Users and Profiles using Faker
-    const totalFakeCandidates = 10;
+    const totalFakeCandidates = 24;
     const availableSkills = [
         "JavaScript",
         "TypeScript",
@@ -117,12 +117,12 @@ export const candidateSeeder = async () => {
             where: { email },
             update: {},
             create: {
+                name: fullName,
                 email,
                 password: hashedPassword,
                 role: "candidate",
                 candidateProfile: {
                     create: {
-                        fullName,
                         email,
                         phoneNumber: faker.phone.number({
                             style: "international",

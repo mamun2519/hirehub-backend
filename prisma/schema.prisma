@@ -11,6 +11,8 @@ model User {
   email            String            @unique
   password         String
   role             String            @default("candidate")
+  avatar           String?
+  name             String?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   candidateProfile CandidateProfile?
@@ -23,7 +25,6 @@ model CandidateProfile {
   id           String   @id @default(uuid())
   userId       String   @unique
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fullName     String
   email        String
   phoneNumber  String
   skills       String[]
@@ -42,7 +43,7 @@ model RecruiterProfile {
   id          String   @id @default(uuid())
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name        String
+  companyName String   @map("company_name")
   website     String
   description String
   location    String

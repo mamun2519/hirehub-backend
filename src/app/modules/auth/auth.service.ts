@@ -55,6 +55,8 @@ const loginUser = async (payload: any) => {
             id: user.id,
             email: user.email,
             role: user.role,
+            avatar: user.avatar,
+            name: user.name,
             createdAt: user.createdAt,
         },
     };
@@ -72,6 +74,7 @@ const registerUser = async (payload: any) => {
         data: {
             email: payload.email,
             password: hashedPassword,
+            name: payload.name || "",
         },
         select: {
             id: true,

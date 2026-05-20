@@ -11,12 +11,13 @@ export const recruiterSeeder = async () => {
         where: { email: recruiterEmail },
         update: {},
         create: {
+            name: "TechCorp Solutions",
             email: recruiterEmail,
             password: hashedPassword,
             role: "recruiter",
             recruiterProfile: {
                 create: {
-                    name: "TechCorp Solutions",
+                    companyName: "TechCorp Solutions",
                     website: "https://techcorp.example.com",
                     description:
                         "A leading global software engineering and IT consulting firm.",
@@ -31,7 +32,7 @@ export const recruiterSeeder = async () => {
     );
 
     // 2. Seed Fake Recruiter Users and Profiles using Faker
-    const totalFakeRecruiters = 15;
+    const totalFakeRecruiters = 14;
 
     console.log(`🌱 Generating ${totalFakeRecruiters} fake recruiters...`);
 
@@ -53,12 +54,13 @@ export const recruiterSeeder = async () => {
             where: { email },
             update: {},
             create: {
+                name: companyName,
                 email,
                 password: hashedPassword,
                 role: "recruiter",
                 recruiterProfile: {
                     create: {
-                        name: companyName,
+                        companyName: companyName,
                         website,
                         description,
                         location,

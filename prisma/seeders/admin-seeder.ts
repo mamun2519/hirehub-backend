@@ -10,6 +10,7 @@ export const adminSeeder = async () => {
         where: { email: adminEmail },
         update: {},
         create: {
+            name: "HireHub Admin",
             email: adminEmail,
             password: hashedPassword,
             role: "admin",
