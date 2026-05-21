@@ -2,6 +2,7 @@ import prisma from '../src/app/shared/prisma';
 import { adminSeeder } from './seeders/admin-seeder';
 import { recruiterSeeder } from './seeders/recruiter-seeder';
 import { candidateSeeder } from './seeders/candidate-seeder';
+import { jobSeeder } from './seeders/job-seeder';
 
 export const adminEmail = 'admin@hirehub.com';
 export const recruiterEmail = 'recruiter@hirehub.com';
@@ -32,6 +33,10 @@ async function main() {
   
   if (!target || target === 'candidate') {
     await candidateSeeder();
+  }
+
+  if (!target || target === 'jobs') {
+    await jobSeeder();
   }
 
   console.log('🌱 Seeding completed successfully!');
