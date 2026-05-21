@@ -67,7 +67,12 @@ const getAllJobsFromDB = async (query: Record<string, any>) => {
         recruiterId,
         sortBy,
         sortOrder,
+        page,
+        limit,
     } = query;
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 12;
+    const skip = (pageNum - 1) * limitNum;
     const andConditions: any[] = [];
 
     if (searchTerm) {
@@ -128,17 +133,31 @@ const getAllJobsFromDB = async (query: Record<string, any>) => {
     const whereConditions =
         andConditions.length > 0 ? { AND: andConditions } : {};
 
-    const result = await prisma.job.findMany({
-        where: whereConditions,
-        include: {
-            recruiter: true,
-        },
-        orderBy: {
-            [sortBy || "createdAt"]: sortOrder || "desc",
-        },
-    });
+    const [total, result] = await prisma.$transaction([
+        prisma.job.count({
+            where: whereConditions,
+        }),
+        prisma.job.findMany({
+            where: whereConditions,
+            include: {
+                recruiter: true,
+            },
+            orderBy: {
+                [sortBy || "createdAt"]: sortOrder || "desc",
+            },
+            skip,
+            take: limitNum,
+        }),
+    ]);
 
-    return result.map(normalizeJobRecruiter);
+    return {
+        meta: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+        },
+        data: result.map(normalizeJobRecruiter),
+    };
 };
 
 const getSingleJobFromDB = async (id: string) => {
