@@ -1,6 +1,32 @@
 import prisma from "../../shared/prisma";
 import AppError from "../../errors/AppError";
 import httpStatus from "http-status";
+import { normalizeFilePathToUrl } from "../../utils/publicAssetUrl";
+
+
+const normalizeRecruiterMedia = (recruiter: any) => {
+    if (!recruiter) return recruiter;
+
+    return {
+        ...recruiter,
+        logo: normalizeFilePathToUrl(recruiter.logo),
+        user: recruiter.user
+            ? {
+                  ...recruiter.user,
+                  avatar: normalizeFilePathToUrl(recruiter.user.avatar),
+              }
+            : recruiter.user,
+    };
+};
+
+const normalizeJobRecruiter = (job: any) => {
+    if (!job?.recruiter) return job;
+
+    return {
+        ...job,
+        recruiter: normalizeRecruiterMedia(job.recruiter),
+    };
+};
 
 const createJobIntoDB = async (userId: string, payload: any) => {
     const recruiterProfile = await prisma.recruiterProfile.findUnique({
@@ -27,7 +53,7 @@ const createJobIntoDB = async (userId: string, payload: any) => {
         },
     });
 
-    return result;
+    return normalizeJobRecruiter(result);
 };
 
 const getAllJobsFromDB = async (query: Record<string, any>) => {
@@ -112,7 +138,7 @@ const getAllJobsFromDB = async (query: Record<string, any>) => {
         },
     });
 
-    return result;
+    return result.map(normalizeJobRecruiter);
 };
 
 const getSingleJobFromDB = async (id: string) => {
@@ -138,7 +164,7 @@ const getSingleJobFromDB = async (id: string) => {
         throw new AppError(httpStatus.NOT_FOUND, "Job not found!");
     }
 
-    return result;
+    return normalizeJobRecruiter(result);
 };
 
 const updateJobInDB = async (id: string, userId: string, payload: any) => {
@@ -177,7 +203,7 @@ const updateJobInDB = async (id: string, userId: string, payload: any) => {
         },
     });
 
-    return result;
+    return normalizeJobRecruiter(result);
 };
 
 const deleteJobFromDB = async (id: string, userId: string) => {
