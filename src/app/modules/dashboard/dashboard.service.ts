@@ -81,7 +81,7 @@ const getAdminStats = async () => {
         },
     });
 
-    const mappedRecentUsers = recentUsers.map((u) => ({
+    const mappedRecentUsers = recentUsers.map((u: any) => ({
         name:
             u.name ||
             (u.role === "recruiter"
@@ -183,7 +183,7 @@ const getRecruiterStats = async (userId: string) => {
         },
     });
 
-    const jobPopularity = jobsWithCounts.map((j) => ({
+    const jobPopularity = jobsWithCounts.map((j: any) => ({
         title: j.title,
         applications: j._count.applications,
     }));
@@ -231,7 +231,7 @@ const getRecruiterStats = async (userId: string) => {
         },
     });
 
-    const mappedRecentApps = recentApplications.map((app) => {
+    const mappedRecentApps = recentApplications.map((app: any) => {
         const diffMs = Date.now() - new Date(app.createdAt).getTime();
         const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
         const diffDays = Math.floor(diffHrs / 24);
