@@ -63,7 +63,7 @@ const applyJobInDB = async (
     const resumeUrl = getFileUrl(file);
     const appId = generateApplicationId();
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
         const application = await tx.application.create({
             data: {
                 applicationId: appId,

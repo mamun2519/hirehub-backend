@@ -115,7 +115,7 @@ const updateUserInDB = async (id: string, payload: any) => {
         where: { id },
     });
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
         // Update user email and name if provided
         const userUpdateData: any = {};
         if (payload.email !== undefined) userUpdateData.email = payload.email;
@@ -182,7 +182,7 @@ const deleteUserFromDB = async (id: string) => {
 const createAnUserToDB = async (data: any) => {
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
         // 1. Create the user
         const user = await tx.user.create({
             data: {
