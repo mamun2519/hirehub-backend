@@ -78,15 +78,14 @@ const getAllJobsFromDB = async (query: Record<string, any>) => {
     if (searchTerm) {
         andConditions.push({
             OR: [
-                { title: { contains: searchTerm, mode: "insensitive" } },
-                { description: { contains: searchTerm, mode: "insensitive" } },
-                { location: { contains: searchTerm, mode: "insensitive" } },
+                { title: { equals: searchTerm } },
+                { description: { equals: searchTerm } },
+                { location: { equals: searchTerm } },
                 { requiredSkills: { hasSome: [searchTerm] } },
                 {
                     recruiter: {
                         companyName: {
-                            contains: searchTerm,
-                            mode: "insensitive",
+                            equals: searchTerm,
                         },
                     },
                 },
