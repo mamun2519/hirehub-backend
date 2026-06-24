@@ -38,10 +38,6 @@ const applyJobInDB = async (
         );
     }
 
-    if (!file) {
-        throw new AppError(httpStatus.BAD_REQUEST, "Resume file is required");
-    }
-
     let candidateId: string | null = null;
     if (userEmail) {
         const candidateProfile = await prisma.candidateProfile.findFirst({
@@ -54,13 +50,13 @@ const applyJobInDB = async (
         }
     }
 
-    const getFileUrl = (file: Express.Multer.File): string => {
-        const dest = file.destination.replace(/\\/g, "/");
+    const getFileUrl = (f: Express.Multer.File): string => {
+        const dest = f.destination.replace(/\\/g, "/");
         const normalizedDest = dest.startsWith("/") ? dest : "/" + dest;
-        return `${normalizedDest}/${file.filename}`;
+        return `${normalizedDest}/${f.filename}`;
     };
 
-    const resumeUrl = getFileUrl(file);
+    const resumeUrl = file ? getFileUrl(file) : "";
     const appId = generateApplicationId();
 
     const result = await prisma.$transaction(async (tx: any) => {
@@ -79,9 +75,9 @@ const applyJobInDB = async (
 
         await tx.resume.create({
             data: {
-                fileName: file.originalname,
-                fileSize: file.size,
-                mimeType: file.mimetype,
+                fileName: file ? file.originalname : "(no file)",
+                fileSize: file ? file.size : 0,
+                mimeType: file ? file.mimetype : "",
                 url: resumeUrl,
                 applicationId: application.id,
             },

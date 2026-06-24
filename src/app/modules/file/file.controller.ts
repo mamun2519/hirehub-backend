@@ -7,7 +7,13 @@ import { FileService } from './file.service';
 
 const uploadFile = catchAsync(async (req: Request, res: Response) => {
   if (!req.file) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Please upload a file');
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'No file provided, skipping upload.',
+      data: { url: null },
+    });
+    return;
   }
 
   const result = await FileService.uploadFile(req.file);
@@ -21,13 +27,27 @@ const uploadFile = catchAsync(async (req: Request, res: Response) => {
 });
 
 const replaceFile = catchAsync(async (req: Request, res: Response) => {
+  const { oldFilePath } = req.body;
+
   if (!req.file) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Please upload a file');
+    // No new file provided — skip replacement, keep old file
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'No new file provided, keeping existing file.',
+      data: { url: oldFilePath || null },
+    });
+    return;
   }
 
-  const { oldFilePath } = req.body;
   if (!oldFilePath) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Please provide the old file path to replace');
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'File uploaded successfully!',
+      data: await FileService.uploadFile(req.file),
+    });
+    return;
   }
 
   const result = await FileService.replaceFile(req.file, oldFilePath);
