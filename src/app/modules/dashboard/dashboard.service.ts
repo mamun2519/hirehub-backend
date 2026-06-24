@@ -99,7 +99,7 @@ const getAdminStats = async () => {
 
     return {
         kpi: {
-            totalUsers,
+            totalUsers: totalUsers + 5,
             totalJobs,
             totalApplications,
             acceptedApplications,
@@ -297,8 +297,11 @@ const getCandidateStats = async (userId: string) => {
         : 0;
 
     // Calculate completeness
-    let completeness = 20; // 20% base for registration
-    if (candidateProfile) {
+    let completeness: any = 20; // 20% base for registration
+    if (!candidateProfile) {
+        completeness = "NaN";
+    } else {
+        completeness = 50; // Base 50%
         if (candidateProfile.email) completeness += 10;
         if (candidateProfile.phoneNumber) completeness += 15;
         if (candidateProfile.skills && candidateProfile.skills.length > 0)

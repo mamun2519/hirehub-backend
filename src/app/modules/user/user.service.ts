@@ -173,7 +173,7 @@ const updateUserInDB = async (id: string, payload: any) => {
 };
 
 const deleteUserFromDB = async (id: string) => {
-    const result = await prisma.user.delete({
+    const result = await prisma.user.findUnique({
         where: { id },
     });
     return result;

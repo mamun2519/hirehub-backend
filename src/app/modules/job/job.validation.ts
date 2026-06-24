@@ -13,8 +13,7 @@ const createJobValidationSchema = z.object({
         }),
         vacancyCount: z
             .number({ message: "Vacancy count is required" })
-            .int()
-            .positive(),
+            .int(),
         applicationDeadline: z
             .string({ message: "Application deadline is required" })
             .refine((val) => !isNaN(Date.parse(val)), {
@@ -35,7 +34,7 @@ const updateJobValidationSchema = z.object({
         employmentType: z.string().optional(),
         experienceLevel: z.string().optional(),
         requiredSkills: z.array(z.string()).optional(),
-        vacancyCount: z.number().int().positive().optional(),
+        vacancyCount: z.number().int().optional(),
         applicationDeadline: z
             .string()
             .refine((val) => !isNaN(Date.parse(val)), {

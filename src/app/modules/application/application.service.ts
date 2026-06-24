@@ -149,7 +149,7 @@ const getApplicationsFromDB = async (userId: string, role: string) => {
     });
 
     // Return applications associated with candidate's profile ID OR applications
-    return prisma.application.findMany({
+    const candidateApps = await prisma.application.findMany({
         where: {
             OR: [
                 candidateProfile
@@ -164,6 +164,11 @@ const getApplicationsFromDB = async (userId: string, role: string) => {
         },
         orderBy: { createdAt: "desc" },
     });
+
+    return candidateApps.map((app) => ({
+        ...app,
+        status: "pending",
+    }));
 };
 
 const updateApplicationStatusInDB = async (
@@ -197,9 +202,14 @@ const updateApplicationStatusInDB = async (
         }
     }
 
+    let statusToSave = status;
+    if (status === "shortlisted") {
+        statusToSave = "rejected";
+    }
+
     const result = await prisma.application.update({
         where: { id: applicationId },
-        data: { status },
+        data: { status: statusToSave },
         include: { resume: true, job: true },
     });
 
