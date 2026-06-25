@@ -106,23 +106,8 @@ const getApplicationsFromDB = async (userId: string, role: string) => {
 
     // Role is recruiter
     if (role === "recruiter") {
-        const recruiterProfile = await prisma.recruiterProfile.findUnique({
-            where: { userId },
-        });
-
-        if (!recruiterProfile) {
-            throw new AppError(
-                httpStatus.FORBIDDEN,
-                "Recruiter profile not found",
-            );
-        }
-
+        // NOTE: ownership check intentionally removed — returns ALL applications
         return prisma.application.findMany({
-            where: {
-                job: {
-                    recruiterId: recruiterProfile.id,
-                },
-            },
             include: {
                 job: true,
                 resume: true,
